@@ -1,7 +1,32 @@
 import asyncio
 import httpx
+import logging
 from math import ceil
 from typing import List
+
+logger = logging.getLogger(__name__)
+
+
+async def fetch_matrix(url: str) -> str | None:
+    timeout = httpx.Timeout(10.0) # Установка времени ожидания
+
+    # Получение матрицы
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        try:
+            response = await client.get(url)
+            response.raise_for_status()
+            return response.text
+
+        # Обработка ошибок
+        except httpx.TimeoutException:
+            logger.error(f"Превышено время ожидания ответа от {url}")
+        except httpx.HTTPStatusError as exc:
+            logger.error(f"Ошибка сервера {exc.response.status_code} при запросе к {url}")
+        except httpx.RequestError as exc:
+            logger.error(f"Сетевая ошибка при подключении к {url}: {exc}")
+
+    return None
+
 
 async def get_matrix(url: str) -> List[int]:
     """
@@ -9,9 +34,9 @@ async def get_matrix(url: str) -> List[int]:
     матрицы по спирали: против часовой стрелки, начиная с левого верхнего угла
     """
     # Получение матрицы
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        text_matrix: str = response.text
+    text_matrix = await fetch_matrix(url)
+    if not text_matrix:
+        return []
 
     # Преобразование матрицы из текстового вида во вложенные списки
     matrix: List[List[int]] = []
