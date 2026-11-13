@@ -67,17 +67,19 @@ async def get_matrix(url: str) -> List[int]:
     матрицы по спирали: против часовой стрелки, начиная с левого верхнего угла
     """
     # Получение матрицы
-    # text_matrix = await _fetch_matrix(url)
-    text_matrix = "+-----+\n| 507 | 56 |\n----+\n"
-    if not text_matrix:
-        return []
+    text_matrix = await _fetch_matrix(url)
 
     # Преобразование матрицы из текстового вида во вложенные списки
     matrix: List[List[int]] = []
     matrix_rows = text_matrix.split("\n")
+    if len(matrix_rows) < 3 or "" in matrix_rows:
+        raise ValueError(f"Неверный формат матрицы")
     matrix_size = -1
     for i in range(1, len(matrix_rows) - 1, 2):
         matrix.append([])
+        row_data = matrix_rows[i].split("|")
+        if row_data[0] != "" or row_data[-1] != "":
+            raise ValueError(f"Неверный формат матрицы")
         for j in matrix_rows[i].split("|")[1:-1]:
             try:
                 number = int(j)
