@@ -91,7 +91,7 @@ def test_valid_matrices(filename: str, expected_result: list[int]):
         ("matrix_with_extra_enter.txt", "Неверный формат матрицы"),
         ("matrix_with_extra_separator.txt", "Значениями матрицы должны быть числа"),
         ("matrix_without_one_enter.txt", "Неверный формат матрицы"),
-        ("matrix_without_one_separator.txt", "Неверный формат матрицы"),
+        ("matrix_without_one_separator.txt", "Значениями матрицы должны быть числа"),
         ("non_square_matrix.txt", "Матрица должна быть квадратной"),
         ("random_chars.txt", "Неверный формат матрицы"),
         ("with_different_rows.txt", "Строки матрицы должны быть одного размера"),
