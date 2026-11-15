@@ -2,6 +2,7 @@ import asyncio
 from unittest.mock import AsyncMock, patch
 import pytest
 import httpx
+from matrix import get_matrix
 
 BASE_URL = "https://raw.githubusercontent.com/UNDREY123/MatrixGetter/refs/heads/master/tests"
 
