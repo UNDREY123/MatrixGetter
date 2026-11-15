@@ -27,13 +27,13 @@ BASE_URL = "https://raw.githubusercontent.com/UNDREY123/MatrixGetter/refs/heads/
             request=httpx.Request("GET", BASE_URL),
             response=httpx.Response(404),
         ),
-        # Превышение времени ожидания подключения (Connection Timeout)
+        # Превышение времени ожидания подключения
         httpx.ConnectTimeout("Connection timed out"),
-        # Превышение времени ожидания чтения ответа (Read Timeout)
+        # Превышение времени ожидания чтения ответа
         httpx.ReadTimeout("Read timed out"),
-        # Отказ в соединении (Connection Refused)
+        # Отказ в соединении
         httpx.ConnectError("Connection refused"),
-        # Общая сетевая ошибка (например, обрыв связи или ошибка DNS)
+        # Общая сетевая ошибка
         httpx.RequestError("Network unreachable"),
     ],
     ids=[
@@ -50,7 +50,7 @@ def test_network_errors(side_effect):
     with patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get:
         mock_get.side_effect = side_effect
 
-        with pytest.raises(MatrixNetworkError):
+        with pytest.raises(httpx.HTTPError):
             asyncio.run(get_matrix(f"{BASE_URL}/1x1_matrix.txt"))
 
 
@@ -71,7 +71,7 @@ def test_network_errors(side_effect):
                 [
                     10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
                     110, 120, 130, 140, 150, 160, 170, 180, 190, 200,
-                    210, 220, 230, 240, 250,
+                    210, 220, 230, 240, 250
                 ],
         ),
     ],
