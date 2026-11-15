@@ -78,7 +78,6 @@ def test_network_errors(side_effect):
     ],
 )
 def test_valid_matrices(filename: str, expected_result: list[int]):
-    """Проверка корректного скачивания, парсинга и обхода валидных матриц."""
     url = f"{BASE_URL}/{filename}"
     result = asyncio.run(get_matrix(url))
     assert result == expected_result

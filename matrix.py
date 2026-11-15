@@ -14,7 +14,7 @@ async def _fetch_matrix(url: str) -> str:
     timeout = httpx.Timeout(10.0) # Установка времени ожидания
 
     # Получение матрицы
-    async with httpx.AsyncClient(timeout=timeout) as client:
+    async with httpx.AsyncClient(timeout=timeout, http2=True) as client:
         try:
             response = await client.get(url)
             response.raise_for_status()
@@ -107,12 +107,3 @@ async def get_matrix(url: str) -> List[int]:
         raise ValueError("Матрица должна быть квадратной")
 
     return _matrix_parser(matrix)
-
-
-async def main():
-    url = "https://raw.githubusercontent.com/UNDREY123/MatrixGetter/refs/heads/master/tests/odd_matrix.txt"
-    matrix = await get_matrix(url)
-    print(matrix)
-
-if __name__ == "__main__":
-    asyncio.run(main())
