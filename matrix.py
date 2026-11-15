@@ -1,4 +1,5 @@
 import logging
+import asyncio
 from math import ceil
 from typing import List
 
@@ -42,22 +43,22 @@ async def _fetch_matrix(url: str) -> str:
 def _matrix_parser(matrix: List[List[int]]) -> List[int]:
     # Создание из матрицы списка путём обхода
     matrix_list: List[int] = []
-    matrix_size = len(matrix)
+    size = len(matrix)
 
     for layer in range(ceil(size / 2)):
         end = size - layer
         # Левая часть
         for row in range(layer, end):
-            result.append(matrix[row][layer])
+            matrix_list.append(matrix[row][layer])
         # Нижняя часть
         for col in range(layer + 1, end):
-            result.append(matrix[end - 1][col])
+            matrix_list.append(matrix[end - 1][col])
         # Правая часть
         for row in range(end - 2, layer - 1, -1):
-            result.append(matrix[row][end - 1])
+            matrix_list.append(matrix[row][end - 1])
         # Верхняя часть
         for col in range(end - 2, layer, -1):
-            result.append(matrix[layer][col])
+            matrix_list.append(matrix[layer][col])
 
     return matrix_list
 
@@ -106,3 +107,12 @@ async def get_matrix(url: str) -> List[int]:
         raise ValueError("Матрица должна быть квадратной")
 
     return _matrix_parser(matrix)
+
+
+async def main():
+    url = "https://raw.githubusercontent.com/UNDREY123/MatrixGetter/refs/heads/master/tests/odd_matrix.txt"
+    matrix = await get_matrix(url)
+    print(matrix)
+
+if __name__ == "__main__":
+    asyncio.run(main())
