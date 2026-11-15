@@ -1,15 +1,15 @@
-import asyncio
-import httpx
 import logging
 from math import ceil
 from typing import List
 
+import httpx
+
 __all__ = ["get_matrix"]
 
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
-
-async def _fetch_matrix(url: str) -> str | None:
+async def _fetch_matrix(url: str) -> str:
     timeout = httpx.Timeout(10.0) # Установка времени ожидания
 
     # Получение матрицы
@@ -44,19 +44,20 @@ def _matrix_parser(matrix: List[List[int]]) -> List[int]:
     matrix_list: List[int] = []
     matrix_size = len(matrix)
 
-    for curr_iter in range(ceil(matrix_size / 2)):
+    for layer in range(ceil(size / 2)):
+        end = size - layer
         # Левая часть
-        for j_left in range(curr_iter, matrix_size - curr_iter * 2 + curr_iter):
-            matrix_list.append(matrix[j_left][curr_iter])
+        for row in range(layer, end):
+            result.append(matrix[row][layer])
         # Нижняя часть
-        for j_down in range(curr_iter + 1, matrix_size - curr_iter * 2 + curr_iter):
-            matrix_list.append(matrix[matrix_size - (curr_iter + 1)][j_down])
+        for col in range(layer + 1, end):
+            result.append(matrix[end - 1][col])
         # Правая часть
-        for j_right in range(matrix_size - curr_iter - 2, curr_iter - 1, -1):
-            matrix_list.append(matrix[j_right][matrix_size - (curr_iter + 1)])
+        for row in range(end - 2, layer - 1, -1):
+            result.append(matrix[row][end - 1])
         # Верхняя часть
-        for j_top in range(matrix_size - curr_iter - 2, curr_iter, -1):
-            matrix_list.append(matrix[curr_iter][j_top])
+        for col in range(end - 2, layer, -1):
+            result.append(matrix[layer][col])
 
     return matrix_list
 
@@ -70,38 +71,38 @@ async def get_matrix(url: str) -> List[int]:
     text_matrix = await _fetch_matrix(url)
 
     # Преобразование матрицы из текстового вида во вложенные списки
-    matrix: List[List[int]] = []
     matrix_rows = text_matrix.split("\n")
     if len(matrix_rows) < 3 or "" in matrix_rows:
-        raise ValueError(f"Неверный формат матрицы")
-    matrix_size = -1
+        raise ValueError("Неверный формат матрицы")
+
+    matrix: List[List[int]] = []
+    expected_row_len: int | None = None
+
     for i in range(1, len(matrix_rows) - 1, 2):
-        matrix.append([])
-        row_data = matrix_rows[i].split("|")
-        if row_data[0] != "" or row_data[-1] != "":
-            raise ValueError(f"Неверный формат матрицы")
-        for j in matrix_rows[i].split("|")[1:-1]:
+        row_cells = matrix_rows[i].split("|")
+        if row_cells[0] != "" or row_cells[-1] != "":
+            raise ValueError("Неверный формат матрицы")
+
+        parsed_row: List[int] = []
+        for cell in row_cells[1:-1]:
             try:
-                number = int(j)
-            except ValueError:
-                raise ValueError(f"Значениями матрицы должны быть числа")
-            else:
-                if number < 0:
-                    raise ValueError(f"Числа матрицы должны быть больше 0")
-                matrix[i // 2].append(number)
-        if matrix_size == -1:
-            matrix_size = len(matrix[0])
-        if len(matrix[i // 2]) != matrix_size:
+                number = int(cell)
+            except ValueError as exc:
+                raise ValueError("Значениями матрицы должны быть числа") from exc
+
+            if number < 0:
+                raise ValueError("Числа матрицы должны быть больше 0")
+
+            parsed_row.append(number)
+
+        if expected_row_len is None:
+            expected_row_len = len(parsed_row)
+        elif len(parsed_row) != expected_row_len:
             raise ValueError("Строки матрицы должны быть одного размера")
-    if len(matrix) != len(matrix[0]):
+
+        matrix.append(parsed_row)
+
+    if not matrix or len(matrix) != len(matrix[0]):
         raise ValueError("Матрица должна быть квадратной")
+
     return _matrix_parser(matrix)
-
-
-async def main():
-    url = "https://raw.githubusercontent.com/avito-tech/python-trainee-assignment/main/matrix.txt"
-    matrix = await get_matrix(url)
-    print(matrix)
-
-if __name__ == "__main__":
-    asyncio.run(main())
